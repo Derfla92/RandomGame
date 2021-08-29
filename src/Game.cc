@@ -50,27 +50,77 @@ void Game::Run()
                 camera->CameraZoom(event.mouseWheel.delta);
                 std::cout << event.mouseWheel.delta << std::endl;
             }
-            if (event.type == sf::Event::MouseButtonReleased)
+
+            sf::Vector2f mouseWorld = Window.mapPixelToCoords(sf::Mouse::getPosition(Window));
+            if (isHeldDown)
             {
-                sf::Vector2f mouseWorld = Window.mapPixelToCoords(sf::Mouse::getPosition(Window));
+                selectionBox.setSize(mouseWorld - selectionBox.getPosition());
+            }
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                if (event.mouseButton.button == sf::Mouse::Left)
+                {
+                    std::cout << "Left is held down!" << std::endl;
+                    isHeldDown = true;
+                    selectionBox.setPosition(mouseWorld);
+                }
+            }
+            else if (event.type == sf::Event::MouseButtonReleased)
+            {
                 //Handle left mouse click
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
+                    if (isHeldDown && selectionBox.getSize() != sf::Vector2f{0,0})
                     {
-                        selected.clear();
-                    }
-
-                    for (auto gameObject : gameObjects)
-                    {
-                        if (gameObject->GetComponent<Sprite2D>() != nullptr)
+                        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
                         {
-                            if (gameObject->GetComponent<Sprite2D>()->GetSprite()->getGlobalBounds().contains(mouseWorld.x, mouseWorld.y))
+                            selected.clear();
+                        }
+                        bool allySelected{false};
+                        for (auto gameObject : gameObjects)
+                        {
+                            
+                            if (gameObject->GetComponent<Sprite2D>() != nullptr)
                             {
-                                std::cout << "Clicked object!" << std::endl;
-                                selected.push_back(gameObject);
+                                
+                                if (gameObject->GetComponent<Sprite2D>()->GetSprite()->getGlobalBounds().intersects(selectionBox.getGlobalBounds()))
+                                {
+                                    if(gameObject->GetComponent<Player>() != nullptr)
+                                    {
+                                        allySelected = true;
+                                        selected.push_back(gameObject);
+                                    }
+                                    else if(gameObject->GetComponent<Enemy>() != nullptr && !allySelected)
+                                    {
+                                        selected.push_back(gameObject);
+                                    }
+                                    
+                                }
                             }
                         }
+                        isHeldDown = false;
+                        std::cout << "Left is no longer held down!" << std::endl;
+                        selectionBox.setSize(sf::Vector2f{0, 0});
+                    }
+                    else
+                    {
+                        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
+                        {
+                            selected.clear();
+                        }
+
+                        for (auto gameObject : gameObjects)
+                        {
+                            if (gameObject->GetComponent<Sprite2D>() != nullptr)
+                            {
+                                if (gameObject->GetComponent<Sprite2D>()->GetSprite()->getGlobalBounds().contains(mouseWorld.x, mouseWorld.y))
+                                {
+                                    std::cout << "Clicked object!" << std::endl;
+                                    selected.push_back(gameObject);
+                                }
+                            }
+                        }
+                        isHeldDown = false;
                     }
                 }
                 else if (event.mouseButton.button == sf::Mouse::Right)
@@ -146,7 +196,7 @@ void Game::GenerateEnemies()
     std::cout << "Generating Enemies..." << std::endl
               << std::endl;
     GameObject *enemies{new GameObject{"Enemies"}};
-    std::cout << "Spawning Enemy at (" << 20 << ", " << 20 << ")" << std::endl;
+    /* std::cout << "Spawning Enemy at (" << 20 << ", " << 20 << ")" << std::endl;
     std::cout << "Creating Gameobject..." << std::endl;
     GameObject *gameObject{new GameObject{"Enemy", map.get_node(15, 10)->position}};
     gameObject->parent = enemies;
@@ -159,8 +209,8 @@ void Game::GenerateEnemies()
     std::cout << "Creating PathFinding Component..." << std::endl;
     gameObject->AddComponent<PathFinding>();
     gameObjects.push_back(gameObject);
-    std::cout << "Successfully created enemy!" << std::endl;
-    /* for (size_t i = 0; i < map.get_node_list().size(); i++)
+    std::cout << "Successfully created enemy!" << std::endl; */
+    for (size_t i = 0; i < map.get_node_list().size(); i++)
     {
         Node *currentNode = map.get_node_list().at(i);
         if (!currentNode->isObsticle)
@@ -169,7 +219,7 @@ void Game::GenerateEnemies()
             {
                 std::cout << "Spawning Enemy at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
                 std::cout << "Creating Gameobject..." << std::endl;
-                GameObject *gameObject{new GameObject{"Enemy",currentNode->position}};
+                GameObject *gameObject{new GameObject{"Enemy", currentNode->position}};
                 gameObject->parent = enemies;
                 enemies->children.push_back(gameObject);
 
@@ -183,7 +233,7 @@ void Game::GenerateEnemies()
                 std::cout << "Successfully created enemy!" << std::endl;
             }
         }
-    } */
+    }
     std::cout << "Enemies generated!" << std::endl;
 }
 
@@ -224,14 +274,19 @@ void Game::Update()
     // Clear screen
     Window.clear();
     Window.setView(camera->viewport);
+
+    //Draw "floor"
     std::vector<Node *> nodes{map.get_node_list()};
     for (size_t i = 0; i < nodes.size(); i++)
     {
 
         Window.draw(*nodes.at(i)->sprite);
-        Window.draw(*nodes.at(i)->marker);
+
+        //Draw Debugmarkers
+        //Window.draw(*nodes.at(i)->marker);
     }
 
+    //Draw gameobject sprites
     for (auto gameObject : gameObjects)
     {
         if (gameObject->GetComponent<Sprite2D>() != nullptr)
@@ -240,21 +295,24 @@ void Game::Update()
         }
     }
 
+    //Draw selected boxes
     for (auto gameObject : selected)
     {
+        
         sf::RectangleShape box{};
         box.setSize(sf::Vector2f{64, 64});
         box.setOrigin(box.getSize().x / 2, box.getSize().y / 2);
         box.setPosition(gameObject->GetComponent<Sprite2D>()->GetSprite()->getPosition().x, gameObject->GetComponent<Sprite2D>()->GetSprite()->getPosition().y);
         box.setFillColor(sf::Color::Transparent);
-        box.setOutlineThickness(1);
+        box.setOutlineThickness(2);
         box.setOutlineColor(sf::Color::Green);
         Window.draw(box);
     }
 
-    for (auto gameObject : gameObjects)
+    //Draw paths
+    for (auto gameObject : selected)
     {
-        if (gameObject->GetComponent<Entity>() != nullptr)
+        if (gameObject->GetComponent<Player>() != nullptr)
         {
             std::vector<PathFinding::Node *> path = gameObject->GetComponent<Entity>()->GetPath();
             if (path.size() > 0)
@@ -264,6 +322,11 @@ void Game::Update()
                 {
                     sf::Vector2f vertex{static_cast<float>(node->pos.x * 64), static_cast<float>(node->pos.y * 64)};
                     lines.push_back(sf::Vertex{vertex});
+                    if(node == path.front())
+                    {
+                        Window.draw(*map.get_node(node->pos.x,node->pos.y)->marker);
+                    }
+                    
                 }
                 for (size_t i = 0; i < lines.size() - 1; i++)
                 {
@@ -276,24 +339,20 @@ void Game::Update()
         }
     }
 
-    /* for (size_t i = 0; i < enemies.size(); i++)
-    {
-        Window.draw(*enemies.at(i)->get_sprite());
-    } */
+    //Draw selectionbox
+    Window.draw(selectionBox);
 
-    // Render Sprite
-    //Window.draw(*player->get_sprite());
     // Update the Window
     Window.display();
 }
 
-GameObject* Game::GetGameObject(std::string name)
+GameObject *Game::GetGameObject(std::string name)
 {
-    auto result = std::find_if(gameObjects.begin(),gameObjects.end(),[&name](GameObject* object){return object->name == name;});
-    if(result == gameObjects.end())
+    auto result = std::find_if(gameObjects.begin(), gameObjects.end(), [&name](GameObject *object)
+                               { return object->name == name; });
+    if (result == gameObjects.end())
     {
         return nullptr;
     }
     return *result;
-
 }

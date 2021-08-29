@@ -45,6 +45,9 @@ class Game
     void GenerateObsticles();
     void GenerateEnemies();
     void GeneratePlayer(int, int);
+
+    bool isHeldDown{false};
+    sf::RectangleShape selectionBox{};
     
 
     

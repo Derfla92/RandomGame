@@ -20,6 +20,7 @@ class Entity : public Component
     virtual void Start() override;
     virtual void FindDestination();
     virtual void SetDestination(Node*);
+    std::vector<Node*> GetAdjacentNodes();
     std::vector<PathFinding::Node*> GetPath();
 
 
@@ -27,11 +28,16 @@ class Entity : public Component
 
     protected:
 
-    virtual void GetAdjacentNodes();
+    virtual void SetAdjacentNodes();
     void Movement();
+    void Attack();
     Node* node;
     std::vector<Node *> adjacentNodes;
     std::vector<PathFinding::Node*> path;
+    
+    
+    sf::Time attackSpeed{sf::seconds(3)};
+    sf::Time attackTimer{sf::seconds(0)};
 
     
 

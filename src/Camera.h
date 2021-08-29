@@ -12,7 +12,7 @@ class Camera
     void CameraZoom(int);
     sf::View viewport;
     private:
-    int panSpeed{100};
+    int panSpeed{300};
     int zoom{1};
     
 };

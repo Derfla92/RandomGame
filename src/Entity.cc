@@ -9,14 +9,13 @@
 Entity::Entity()
     : Component(), node{}, adjacentNodes{}, path{}
 {
-    
 }
 
 void Entity::Start()
 {
     Transform *transform{gameObject->GetComponent<Transform>()};
     node = Game::map.get_node(transform->position.x, transform->position.y);
-    GetAdjacentNodes();
+    SetAdjacentNodes();
 }
 
 void Entity::FindDestination()
@@ -31,11 +30,18 @@ void Entity::FindDestination()
 
     if (distanceToPlayer < 10)
     {
-        destination = player->GetComponent<Entity>()->node;
-        destination->isObsticle = false;
-        SetDestination(destination);
-        destination->isObsticle = true;
-        return;
+        std::vector<Node *> adjacentNodes{player->GetComponent<Entity>()->GetAdjacentNodes()};
+        for (auto node : adjacentNodes)
+        {
+            if (!node->isObsticle)
+            {
+                destination = player->GetComponent<Entity>()->node;
+                destination->isObsticle = false;
+                SetDestination(destination);
+                destination->isObsticle = true;
+                return;
+            }
+        }
     }
     else if (path.size() == 0)
     {
@@ -77,7 +83,11 @@ void Entity::Movement()
 
     if (path.size() > 0)
     {
-        if (path.back()->pos != Game::GetGameObject("Player")->GetComponent<Entity>()->node->position)
+        if(Game::map.get_node(path.back()->pos.x,path.back()->pos.y)->isObsticle)
+        {
+            FindDestination();
+        }
+        else if (path.back()->pos != Game::GetGameObject("Player")->GetComponent<Entity>()->node->position)
         {
             sf::Vector2<double> movement{path.back()->pos - gameObject->GetComponent<Transform>()->position};
 
@@ -100,7 +110,7 @@ void Entity::Movement()
                 node = Game::map.get_node(path.back()->pos.x, path.back()->pos.y);
                 node->isObsticle = true;
                 //Grab new adjacent nodes and color them.
-                GetAdjacentNodes();
+                SetAdjacentNodes();
                 node->marker->setFillColor(sf::Color().Yellow);
                 path.pop_back();
             }
@@ -108,7 +118,25 @@ void Entity::Movement()
     }
 }
 
-void Entity::GetAdjacentNodes()
+void Entity::Attack()
+{
+    GameObject* player{Game::GetGameObject("Player")};
+    for(auto node : adjacentNodes)
+    {
+        if(player->GetComponent<Entity>()->node == node && attackTimer <= sf::seconds(0))
+        {
+            std::cout << gameObject->name << " is attacking Player!" << std::endl;
+            attackTimer = attackSpeed;
+            return;
+        }
+    }
+    if(attackTimer > sf::seconds(0))
+    {
+        attackTimer -= sf::seconds(Time::deltaTime);
+    }
+}
+
+void Entity::SetAdjacentNodes()
 {
     //std::cout << "Removing old Adjacent nodes..." << std::endl;
     for (size_t i = 0; i < adjacentNodes.size(); i++)
@@ -138,4 +166,9 @@ void Entity::GetAdjacentNodes()
     }
 
     //std::cout << "Adjacent nodes found!" << std::endl;
+}
+
+std::vector<Node *> Entity::GetAdjacentNodes()
+{
+    return adjacentNodes;
 }

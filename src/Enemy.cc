@@ -22,5 +22,6 @@ void Enemy::Update()
 {
     FindDestination();
     Movement();
+    Attack();
 }
 

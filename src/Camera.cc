@@ -32,11 +32,11 @@ void Camera::CameraZoom(int mouseWheelDelta)
 {
     if (mouseWheelDelta > 0)
     {
-        viewport.setSize(viewport.getSize().x * 0.99f, viewport.getSize().y * 0.99f);
+        viewport.setSize(viewport.getSize().x * 0.9f, viewport.getSize().y * 0.9f);
     }
     else
     {
-        viewport.setSize(viewport.getSize().x * 1.01f, viewport.getSize().y * 1.01f);
+        viewport.setSize(viewport.getSize().x * 1.1f, viewport.getSize().y * 1.1f);
     }
     std::cout << viewport.getSize().x << ", " << viewport.getSize().y << std::endl;
 }
