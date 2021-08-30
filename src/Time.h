@@ -8,7 +8,7 @@ class Time
     Time();
 
     static sf::Clock timer;
-    static double deltaTime;
+    static float deltaTime;
     private:
 };
 

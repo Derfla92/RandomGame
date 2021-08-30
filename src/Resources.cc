@@ -1,45 +1,55 @@
 #include "Resources.h"
+#include <string>
 #include <iostream>
+#include <filesystem>
+#include "Human.h"
+#include "GameObject.h"
+#include "Sprite2D.h"
+#include "Faction.h"
+
+namespace fs = std::filesystem;
 
 Resources::Resources()
-    : textures{}
+    : textures{}, prefabs{}
 {
     LoadTextures();
+    LoadHumanPrefab();
 }
 
 void Resources::LoadTextures()
 {
     // Load Textures
 
-    //Player
-    sf::Texture *playerTxt{new sf::Texture{}};
-    if (playerTxt->loadFromFile("assets/Player.png"))
+    std::string path{"assets/"};
+    for (const auto &entry : fs::directory_iterator(path))
     {
-        textures.push_back(playerTxt);
-        std::cout << "Successfully loaded Player Texture!" << std::endl;
+        if (entry.path().extension() == ".png")
+        {
+            std::cout << "Found .png file" << std::endl;
+            std::cout << entry.path().generic_string() << std::endl;
+            std::cout << entry.path().stem().string() << std::endl;
+            sf::Texture *texture{new sf::Texture{}};
+            texture->loadFromFile(entry.path().generic_string());
+            textures.insert({entry.path().stem().string(), texture});
+        }
     }
+}
 
-    //Tree
-    sf::Texture *treeTxt{new sf::Texture{}};
-    if (treeTxt->loadFromFile("assets/Tree.png"))
-    {
-        textures.push_back(treeTxt);
-        std::cout << "Successfully loaded Tree Texture!" << std::endl;
-    }
+void Resources::LoadHumanPrefab()
+{
+    std::cout << "Loading Human Prefab..." << std::endl;
+    std::cout << "Creating GameObject..." << std::endl;
+    GameObject *gameObject{new GameObject{"Human"}};
+    std::cout << "Adding Human Component..." << std::endl;
+    gameObject->AddComponent<Human>();
+    std::cout << "Adding Faction Component..." << std::endl;
+    gameObject->AddComponent<Faction>();
+    std::cout << "Adding Sprite2D Component with Human texture..." << std::endl;
+    gameObject->AddComponent<Sprite2D>((*textures.find("Human")).second);
+    std::cout << "Adding PathFinding Component..." << std::endl;
+    gameObject->AddComponent<PathFinding>();
 
-    //Ghost
-    sf::Texture *ghostTxt{new sf::Texture{}};
-    if (ghostTxt->loadFromFile("assets/Ghoul.png"))
-    {
-        textures.push_back(ghostTxt);
-        std::cout << "Successfully loaded Ghost Texture!" << std::endl;
-    }
+    prefabs.insert({"Human",gameObject});
 
-    //Grass
-    sf::Texture *grassTxt{new sf::Texture{}};
-    if (grassTxt->loadFromFile("assets/Grass.png"))
-    {
-        textures.push_back(grassTxt);
-        std::cout << "Successfully loaded Grass Texture!" << std::endl;
-    }
+    std::cout << "Finished loading Human Prefab!" << std::endl;
 }

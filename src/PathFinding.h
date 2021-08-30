@@ -21,14 +21,14 @@ public:
     {
         Node() : pos{},parent{}{};
         Node(const PathFinding::Node&);
-        Node(sf::Vector2<double> position, Node *parent = nullptr) : pos{position}, parent(parent){};
+        Node(sf::Vector2f position, Node *parent = nullptr) : pos{position}, parent(parent){};
         ~Node()
         {
             std::cout << "Deleting node." << std::endl;
         }
 
         Node operator=(const Node&);
-        sf::Vector2<double> pos;
+        sf::Vector2f pos;
         Node *parent;
 
         int g_cost{};
@@ -40,10 +40,10 @@ public:
     };
     PathFinding();
     
-    std::vector<Node *> construct_path_with_heap(sf::Vector2<double> &, sf::Vector2<double> &);
+    std::vector<Node *> construct_path_with_heap(sf::Vector2f &, sf::Vector2f &);
     private:
-    bool contains_node_with_pos(const std::vector<Node *> &, sf::Vector2<double> &);
-    Node *get_node_with_pos(const std::vector<Node *> &, sf::Vector2<double> &);
+    bool contains_node_with_pos(const std::vector<Node *> &, sf::Vector2f &);
+    Node *get_node_with_pos(const std::vector<Node *> &, sf::Vector2f &);
     
 };
 

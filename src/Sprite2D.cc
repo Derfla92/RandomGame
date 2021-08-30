@@ -16,7 +16,7 @@ void Sprite2D::Start()
 
 void Sprite2D::Update()
 {
-    position = sf::Vector2<double>{gameObject->GetComponent<Transform>()->position.x * sprite->getTexture()->getSize().x * 0.125f,
+    position = sf::Vector2f{gameObject->GetComponent<Transform>()->position.x * sprite->getTexture()->getSize().x * 0.125f,
                                    gameObject->GetComponent<Transform>()->position.y * sprite->getTexture()->getSize().y * 0.125f};
     sprite->setPosition(position.x,position.y);
 }

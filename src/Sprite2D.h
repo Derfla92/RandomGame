@@ -19,9 +19,9 @@ class Sprite2D : public Component
 
     private:
     sf::Sprite* sprite;
-    sf::Vector2<double> position;
-    sf::Vector2<double> rotation;
-    sf::Vector2<double> size;
+    sf::Vector2f position;
+    sf::Vector2f rotation;
+    sf::Vector2f size;
     
 };
 

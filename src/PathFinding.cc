@@ -15,7 +15,7 @@ void PathFinding::Update()
 {
 }
 
-std::vector<PathFinding::Node *> PathFinding::construct_path_with_heap(sf::Vector2<double> &start, sf::Vector2<double> &end)
+std::vector<PathFinding::Node *> PathFinding::construct_path_with_heap(sf::Vector2f &start, sf::Vector2f &end)
 {
     //list of closed nodes already evaluated
     std::vector<Node *> closed{};
@@ -63,7 +63,7 @@ std::vector<PathFinding::Node *> PathFinding::construct_path_with_heap(sf::Vecto
                         {
                             if (!Game::map.get_node(currentNode->pos.x + x, currentNode->pos.y + y)->isObsticle)
                             {
-                                Node *child = new Node(sf::Vector2<double>{currentNode->pos.x + x,currentNode->pos.y + y}, currentNode);
+                                Node *child = new Node(sf::Vector2f{currentNode->pos.x + x,currentNode->pos.y + y}, currentNode);
                                 children.push_back(child);
                             }
                         }
@@ -100,7 +100,7 @@ std::vector<PathFinding::Node *> PathFinding::construct_path_with_heap(sf::Vecto
     return path;
 }
 
-bool PathFinding::contains_node_with_pos(const std::vector<Node *> &closed_list, sf::Vector2<double> &pos)
+bool PathFinding::contains_node_with_pos(const std::vector<Node *> &closed_list, sf::Vector2f &pos)
 {
     for (auto node : closed_list)
     {
@@ -112,7 +112,7 @@ bool PathFinding::contains_node_with_pos(const std::vector<Node *> &closed_list,
     return false;
 }
 
-PathFinding::Node *PathFinding::get_node_with_pos(const std::vector<Node *> &nodes, sf::Vector2<double> &pos)
+PathFinding::Node *PathFinding::get_node_with_pos(const std::vector<Node *> &nodes, sf::Vector2f &pos)
 {
     for (auto node : nodes)
     {

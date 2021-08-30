@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "Camera.h"
-#include "Enemy.h"
-#include "Player.h"
+#include "Human.h"
 #include "Node.h"
 #include <iostream>
 #include "GameObject.h"
@@ -11,21 +10,27 @@
 #include "Sprite2D.h"
 #include "Tree.h"
 #include "PathFinding.h"
+#include "Shirt.h"
+#include "Faction.h"
+#include "NameGenerator.h"
 
 sf::RenderWindow Game::Window{sf::VideoMode(1920, 1080), "SFML window", sf::Style::Fullscreen};
 Resources Game::resources{};
 Map Game::map{64, 64};
 std::vector<GameObject *> Game::gameObjects{};
+std::vector<Faction *> Game::factions{};
 
 Game::Game()
-    : player{nullptr}, camera{new Camera{}}, selected{}
+    : camera{new Camera{}}, selected{}
 {
 }
 
 void Game::Run()
 {
     GenerateObsticles();
-    GenerateEnemies();
+    GenerateFactions();
+    //GenerateEnemies();
+    //GeneratePlayer(10, 10);
     GeneratePlayer(10, 10);
 
     std::cout << "Starting game..." << std::endl;
@@ -70,7 +75,7 @@ void Game::Run()
                 //Handle left mouse click
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    if (isHeldDown && selectionBox.getSize() != sf::Vector2f{0,0})
+                    if (isHeldDown && selectionBox.getSize() != sf::Vector2f{0, 0})
                     {
                         if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
                         {
@@ -79,22 +84,24 @@ void Game::Run()
                         bool allySelected{false};
                         for (auto gameObject : gameObjects)
                         {
-                            
+
                             if (gameObject->GetComponent<Sprite2D>() != nullptr)
                             {
-                                
+
                                 if (gameObject->GetComponent<Sprite2D>()->GetSprite()->getGlobalBounds().intersects(selectionBox.getGlobalBounds()))
                                 {
-                                    if(gameObject->GetComponent<Player>() != nullptr)
+                                    if (gameObject->GetComponent<Human>() != nullptr)
                                     {
-                                        allySelected = true;
-                                        selected.push_back(gameObject);
+                                        if (gameObject->GetComponent<Human>()->faction->isPlayerFaction)
+                                        {
+                                            allySelected = true;
+                                            selected.push_back(gameObject);
+                                        }
+                                        else if (!allySelected)
+                                        {
+                                            selected.push_back(gameObject);
+                                        }
                                     }
-                                    else if(gameObject->GetComponent<Enemy>() != nullptr && !allySelected)
-                                    {
-                                        selected.push_back(gameObject);
-                                    }
-                                    
                                 }
                             }
                         }
@@ -130,9 +137,12 @@ void Game::Run()
 
                     for (auto gameObject : selected)
                     {
-                        if (gameObject->name == "Player")
+                        if (gameObject->GetComponent<Human>() != nullptr)
                         {
-                            gameObject->GetComponent<Player>()->SetDestination(map.get_node(std::round(mouseWorld.x / map.mapsize.width), std::round(mouseWorld.y / map.mapsize.height)));
+                            if (gameObject->GetComponent<Human>()->faction->isPlayerFaction)
+                            {
+                                gameObject->GetComponent<Human>()->SetDestination(map.get_node(std::round(mouseWorld.x / map.mapsize.width), std::round(mouseWorld.y / map.mapsize.height)));
+                            }
                         }
                     }
                 }
@@ -167,14 +177,15 @@ void Game::GenerateObsticles()
         {
             std::cout << "Spawning Tree at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
             std::cout << "Creating Gameobject..." << std::endl;
-            GameObject *gameObject{new GameObject{"Tree", currentNode->position}};
+            GameObject *gameObject{new GameObject{"Tree"}};
             gameObject->parent = obsticles;
-            obsticles->children.push_back(gameObject);
+            gameObject->parent->children.push_back(gameObject);
+            gameObject->transform->localPosition = currentNode->position;
 
             std::cout << "Creating Tree Component..." << std::endl;
             gameObject->AddComponent<Tree>();
             std::cout << "Creating Sprite2D Component..." << std::endl;
-            gameObject->AddComponent<Sprite2D>(resources.textures.at(1));
+            gameObject->AddComponent<Sprite2D>((*resources.textures.find("Tree")).second);
 
             gameObjects.push_back(gameObject);
             std::cout << "Successfully created Tree!" << std::endl;
@@ -196,20 +207,20 @@ void Game::GenerateEnemies()
     std::cout << "Generating Enemies..." << std::endl
               << std::endl;
     GameObject *enemies{new GameObject{"Enemies"}};
-    /* std::cout << "Spawning Enemy at (" << 20 << ", " << 20 << ")" << std::endl;
+    /* std::cout << "Spawning Human at (" << 20 << ", " << 20 << ")" << std::endl;
     std::cout << "Creating Gameobject..." << std::endl;
-    GameObject *gameObject{new GameObject{"Enemy", map.get_node(15, 10)->position}};
+    GameObject *gameObject{new GameObject{"Human", map.get_node(15, 10)->position}};
     gameObject->parent = enemies;
     enemies->children.push_back(gameObject);
 
-    std::cout << "Creating Enemy Component..." << std::endl;
-    gameObject->AddComponent<Enemy>();
+    std::cout << "Creating Human Component..." << std::endl;
+    gameObject->AddComponent<Human>();
     std::cout << "Creating Sprite2D Component..." << std::endl;
     gameObject->AddComponent<Sprite2D>(resources.textures.at(2));
     std::cout << "Creating PathFinding Component..." << std::endl;
     gameObject->AddComponent<PathFinding>();
     gameObjects.push_back(gameObject);
-    std::cout << "Successfully created enemy!" << std::endl; */
+    std::cout << "Successfully created human!" << std::endl; */
     for (size_t i = 0; i < map.get_node_list().size(); i++)
     {
         Node *currentNode = map.get_node_list().at(i);
@@ -217,20 +228,16 @@ void Game::GenerateEnemies()
         {
             if (std::rand() % 1000 + 1 < 10)
             {
-                std::cout << "Spawning Enemy at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
+                std::cout << "Spawning Human at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
                 std::cout << "Creating Gameobject..." << std::endl;
-                GameObject *gameObject{new GameObject{"Enemy", currentNode->position}};
+                GameObject *gameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)};
+                gameObject->transform->position = currentNode->position;
                 gameObject->parent = enemies;
-                enemies->children.push_back(gameObject);
+                gameObject->parent->children.push_back(gameObject);
+                gameObject->transform->localPosition = currentNode->position;
+                gameObject->GetComponent<Human>()->faction = factions.at(1);
 
-                std::cout << "Creating Enemy Component..." << std::endl;
-                gameObject->AddComponent<Enemy>();
-                std::cout << "Creating Sprite2D Component..." << std::endl;
-                gameObject->AddComponent<Sprite2D>(resources.textures.at(2));
-                std::cout << "Creating PathFinding Component..." << std::endl;
-                gameObject->AddComponent<PathFinding>();
-                gameObjects.push_back(gameObject);
-                std::cout << "Successfully created enemy!" << std::endl;
+                std::cout << "Successfully created human!" << std::endl;
             }
         }
     }
@@ -250,17 +257,44 @@ void Game::GeneratePlayer(int x, int y)
         currentNode = map.get_node(x, y);
     }
     std::cout << "Spawning Player at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
-    std::cout << "Creating Gameobject..." << std::endl;
-    GameObject *gameObject{new GameObject{"Player", currentNode->position}};
-    std::cout << "Creating Player Component..." << std::endl;
-    player = gameObject->AddComponent<Player>();
-    player->speed = 5;
-    std::cout << "Creating Sprite2D Component..." << std::endl;
-    gameObject->AddComponent<Sprite2D>(resources.textures.at(0));
+    GameObject *gameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)};
+    gameObject->transform->position = currentNode->position;
+    Human* human{gameObject->GetComponent<Human>()};
+    human->name = NameGenerator::GenerateName();
+    human->SetNode(currentNode);
+    human->faction = factions.at(0);
+    human->faction->members.push_back(human);
+    //Adding Clothes
+    GameObject *objectShirt{new GameObject{"Shirt", currentNode->position}};
+    objectShirt->parent = gameObject;
+    gameObject->children.push_back(objectShirt);
+    Shirt *shirt{objectShirt->AddComponent<Shirt>()};
+    objectShirt->AddComponent<Sprite2D>((*resources.textures.find("Shirt")).second);
+    gameObject->GetComponent<Human>()->aparel.shirt = shirt;
+
     gameObjects.push_back(gameObject);
-    std::rotate(gameObjects.rbegin(), gameObjects.rbegin() + 1, gameObjects.rend());
     std::cout << "Successfully created player!" << std::endl;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////Generate Factions//////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Game::GenerateFactions()
+{
+    for (int i = 0; i < 2; i++)
+    {
+        Faction* faction{new Faction()};
+        faction->name = "Faction" + std::to_string(i);
+        factions.push_back(faction);
+    }
+    factions.at(0)->isPlayerFaction = true;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////Update/////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::Update()
 {
@@ -285,6 +319,8 @@ void Game::Update()
         //Draw Debugmarkers
         //Window.draw(*nodes.at(i)->marker);
     }
+    sf::Font font{};
+    font.loadFromFile("assets/ArchitectsDaughter-Regular.ttf");
 
     //Draw gameobject sprites
     for (auto gameObject : gameObjects)
@@ -292,13 +328,35 @@ void Game::Update()
         if (gameObject->GetComponent<Sprite2D>() != nullptr)
         {
             Window.draw(*gameObject->GetComponent<Sprite2D>()->GetSprite());
+            for (auto child : gameObject->children)
+            {
+                if (child->GetComponent<Sprite2D>() != nullptr)
+                {
+                    Window.draw(*child->GetComponent<Sprite2D>()->GetSprite());
+                }
+            }
+        }
+        Entity *entity{gameObject->GetComponent<Entity>()};
+        if (entity != nullptr)
+        {
+            sf::Text nameTag{};
+            nameTag.setFont(font);
+            nameTag.setString(entity->name);
+            nameTag.setCharacterSize(15);
+            nameTag.setOrigin(nameTag.getGlobalBounds().width / 2, nameTag.getGlobalBounds().height / 2);
+            nameTag.setPosition(sf::Vector2f{gameObject->transform->position.x * 64, gameObject->transform->position.y * 64 - 34 - nameTag.getCharacterSize()});
+            if (!gameObject->GetComponent<Human>()->faction->isPlayerFaction)
+            {
+                nameTag.setFillColor(sf::Color().Red);
+            }
+            Window.draw(nameTag);
         }
     }
 
     //Draw selected boxes
     for (auto gameObject : selected)
     {
-        
+
         sf::RectangleShape box{};
         box.setSize(sf::Vector2f{64, 64});
         box.setOrigin(box.getSize().x / 2, box.getSize().y / 2);
@@ -312,7 +370,7 @@ void Game::Update()
     //Draw paths
     for (auto gameObject : selected)
     {
-        if (gameObject->GetComponent<Player>() != nullptr)
+        if (gameObject->GetComponent<Human>() != nullptr)
         {
             std::vector<PathFinding::Node *> path = gameObject->GetComponent<Entity>()->GetPath();
             if (path.size() > 0)
@@ -320,13 +378,17 @@ void Game::Update()
                 std::vector<sf::Vertex> lines{};
                 for (auto node : path)
                 {
-                    sf::Vector2f vertex{static_cast<float>(node->pos.x * 64), static_cast<float>(node->pos.y * 64)};
+                    sf::Vector2f vertex{node->pos.x * 64, node->pos.y * 64};
                     lines.push_back(sf::Vertex{vertex});
-                    if(node == path.front())
+                    if (node == path.front())
                     {
-                        Window.draw(*map.get_node(node->pos.x,node->pos.y)->marker);
+                        sf::CircleShape endPoint{*map.get_node(node->pos.x, node->pos.y)->marker};
+                        endPoint.setScale(1.5f, 1.5f);
+                        endPoint.setFillColor(sf::Color().Transparent);
+                        endPoint.setOutlineColor(sf::Color().White);
+                        endPoint.setOutlineThickness(1);
+                        Window.draw(endPoint);
                     }
-                    
                 }
                 for (size_t i = 0; i < lines.size() - 1; i++)
                 {
@@ -340,6 +402,9 @@ void Game::Update()
     }
 
     //Draw selectionbox
+    selectionBox.setFillColor(sf::Color::Transparent);
+    selectionBox.setOutlineThickness(2);
+    selectionBox.setOutlineColor(sf::Color::Green);
     Window.draw(selectionBox);
 
     // Update the Window

@@ -2,6 +2,8 @@
 #define ENTITY_H
 
 class Node;
+class Shirt;
+class Faction;
 
 #include <SFML/Graphics.hpp>
 #include "Component.h"
@@ -22,9 +24,19 @@ class Entity : public Component
     virtual void SetDestination(Node*);
     std::vector<Node*> GetAdjacentNodes();
     std::vector<PathFinding::Node*> GetPath();
+    Node* GetNode();
+    void SetNode(Node*);
 
 
-    int speed{1};
+    int speed;
+    std::string name;
+
+    struct Aparel{
+        Aparel() : shirt{}{};
+        Shirt* shirt;
+    }aparel;
+
+    Faction* faction;
 
     protected:
 
@@ -34,6 +46,7 @@ class Entity : public Component
     Node* node;
     std::vector<Node *> adjacentNodes;
     std::vector<PathFinding::Node*> path;
+    
     
     
     sf::Time attackSpeed{sf::seconds(3)};
