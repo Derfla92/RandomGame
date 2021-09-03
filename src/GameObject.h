@@ -87,6 +87,11 @@ public:
     GameObject(const GameObject& gameObject)
     : id{gameObject.id}, components{gameObject.components},name{gameObject.name},parent{gameObject.parent}, children{gameObject.children},transform{gameObject.transform}
     {
+        id = gameObject.id;
+        for(auto component : gameObject.components)
+        {
+            AddComponent<typename
+        }
 
     }
 

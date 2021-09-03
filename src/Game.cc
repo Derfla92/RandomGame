@@ -29,8 +29,8 @@ void Game::Run()
 {
     GenerateObsticles();
     GenerateFactions();
-    //GenerateEnemies();
-    //GeneratePlayer(10, 10);
+    GenerateEnemies();
+    GeneratePlayer(10, 10);
     GeneratePlayer(10, 10);
 
     std::cout << "Starting game..." << std::endl;
@@ -187,7 +187,6 @@ void Game::GenerateObsticles()
             std::cout << "Creating Sprite2D Component..." << std::endl;
             gameObject->AddComponent<Sprite2D>((*resources.textures.find("Tree")).second);
 
-            gameObjects.push_back(gameObject);
             std::cout << "Successfully created Tree!" << std::endl;
 
             currentNode->isObsticle = true;
@@ -207,6 +206,7 @@ void Game::GenerateEnemies()
     std::cout << "Generating Enemies..." << std::endl
               << std::endl;
     GameObject *enemies{new GameObject{"Enemies"}};
+    gameObjects.push_back(enemies);
     /* std::cout << "Spawning Human at (" << 20 << ", " << 20 << ")" << std::endl;
     std::cout << "Creating Gameobject..." << std::endl;
     GameObject *gameObject{new GameObject{"Human", map.get_node(15, 10)->position}};
@@ -231,10 +231,9 @@ void Game::GenerateEnemies()
                 std::cout << "Spawning Human at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
                 std::cout << "Creating Gameobject..." << std::endl;
                 GameObject *gameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)};
-                gameObject->transform->position = currentNode->position;
                 gameObject->parent = enemies;
                 gameObject->parent->children.push_back(gameObject);
-                gameObject->transform->localPosition = currentNode->position;
+                gameObject->GetComponent<Human>()->SetNode(currentNode);
                 gameObject->GetComponent<Human>()->faction = factions.at(1);
 
                 std::cout << "Successfully created human!" << std::endl;
@@ -259,7 +258,7 @@ void Game::GeneratePlayer(int x, int y)
     std::cout << "Spawning Player at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
     GameObject *gameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)};
     gameObject->transform->position = currentNode->position;
-    Human* human{gameObject->GetComponent<Human>()};
+    Human *human{gameObject->GetComponent<Human>()};
     human->name = NameGenerator::GenerateName();
     human->SetNode(currentNode);
     human->faction = factions.at(0);
@@ -284,12 +283,11 @@ void Game::GenerateFactions()
 {
     for (int i = 0; i < 2; i++)
     {
-        Faction* faction{new Faction()};
+        Faction *faction{new Faction()};
         faction->name = "Faction" + std::to_string(i);
         factions.push_back(faction);
     }
     factions.at(0)->isPlayerFaction = true;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,12 +326,15 @@ void Game::Update()
         if (gameObject->GetComponent<Sprite2D>() != nullptr)
         {
             Window.draw(*gameObject->GetComponent<Sprite2D>()->GetSprite());
-            for (auto child : gameObject->children)
+        }
+        for (auto child : gameObject->children)
+        {
+            Sprite2D* sprite{child->GetComponent<Sprite2D>()};
+            if (sprite != nullptr)
             {
-                if (child->GetComponent<Sprite2D>() != nullptr)
-                {
-                    Window.draw(*child->GetComponent<Sprite2D>()->GetSprite());
-                }
+                sf::Sprite sp{*sprite->GetSprite()};
+                sf::Vector2f pos{sp.getPosition()};
+                Window.draw(sp);
             }
         }
         Entity *entity{gameObject->GetComponent<Entity>()};

@@ -5,6 +5,7 @@ class Entity;
 
 #include "Component.h"
 #include<string>
+#include<vector>
 
 class Faction : public Component
 {
