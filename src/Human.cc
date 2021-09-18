@@ -1,4 +1,4 @@
-#include "Enemy.h"
+#include "Human.h"
 #include "Game.h"
 #include "Node.h"
 #include "math.h"
@@ -8,20 +8,20 @@
 #include "Transform.h"
 #include "Sprite2D.h"
 
-Enemy::Enemy()
+Human::Human()
     : Entity()
 {
 }
 
-void Enemy::Start()
+void Human::Start()
 {
     Entity::Start();
 }
 
-void Enemy::Update()
+void Human::Update()
 {
-    FindDestination();
+    //FindDestination();
     Movement();
-    Attack();
+    //Attack();
 }
 

@@ -14,18 +14,18 @@ Map::Map(int width,int height)
         {
 
             Node* node{new Node{}};
-            node->position = sf::Vector2<double>(x, y);
+            node->position = sf::Vector2f(x, y);
 
             sf::CircleShape* marker{new sf::CircleShape{10}};
             marker->setFillColor(sf::Color().Green);
             marker->setOrigin(marker->getRadius(), marker->getRadius());
-            sf::Vector2<double> position{node->position.x * 64, node->position.y * 64};
+            sf::Vector2f position{node->position.x * 64, node->position.y * 64};
             marker->setPosition(position.x, position.y);
             node->marker = marker;
 
             sf::Sprite* grass{new sf::Sprite{}};
-            grass->setTexture(*Game::resources.textures.at(3));
-            grass->setOrigin(Game::resources.textures.at(3)->getSize().x/2,Game::resources.textures.at(3)->getSize().y/2);
+            grass->setTexture(*(*Game::resources.textures.find("Grass")).second);
+            grass->setOrigin((*Game::resources.textures.find("Grass")).second->getSize().x/2,(*Game::resources.textures.find("Grass")).second->getSize().y/2);
             grass->setScale(0.125f,0.125f);
             grass->setPosition(position.x, position.y);
             node->sprite = grass;

@@ -14,7 +14,7 @@ public:
     bool isObsticle{false};
     sf::Sprite* sprite;
     sf::CircleShape* marker;
-    sf::Vector2<double> position;
+    sf::Vector2f position;
 
 private:
 };

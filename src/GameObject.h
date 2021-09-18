@@ -14,6 +14,7 @@ class GameObject
 {
 friend class Game;
 public:
+    //Default Constructor.
     GameObject()
         : id{Game::gameObjects.size()}, components{},name{},parent{nullptr},children{},transform{nullptr}
     {
@@ -30,6 +31,8 @@ public:
         
         transform = this->AddComponent<Transform>();
     }
+
+    //GameObject with name.
     GameObject(std::string p_name)
         : id{Game::gameObjects.size()}, components{},name{},parent{nullptr},children{},transform{nullptr}
     {
@@ -45,7 +48,9 @@ public:
         }
         transform = this->AddComponent<Transform>();
     }
-    GameObject(sf::Vector2<double> position)
+
+    //GameObject with position.
+    GameObject(sf::Vector2f position)
         : id{Game::gameObjects.size()}, components{},name{},parent{nullptr},children{},transform{nullptr}
     {
         auto result = std::find_if(Game::gameObjects.rbegin(),Game::gameObjects.rend(),[](GameObject* object){return object->name.substr(0,10) == "GameObject";});
@@ -60,7 +65,9 @@ public:
         }
         transform = AddComponent<Transform>(position);
     }
-    GameObject(std::string p_name, sf::Vector2<double> position)
+
+    //GameObject with name and position.
+    GameObject(std::string p_name, sf::Vector2f position)
         : id{Game::gameObjects.size()}, components{},name{},parent{nullptr},children{},transform{nullptr}
     {
         auto result = std::find_if(Game::gameObjects.rbegin(),Game::gameObjects.rend(),[p_name](GameObject* object){return object->name.substr(0,p_name.size()) == p_name;});
@@ -75,14 +82,17 @@ public:
         }
         transform = AddComponent<Transform>(position);
     }
+
+    //Copy Constructor.
     GameObject(const GameObject& gameObject)
-    : id{gameObject.id}, components{gameObject.components},name{gameObject.name},parent{gameObject.parent}, children{gameObject.children},transform{gameObject.transform}
+    : id{}, components{gameObject.components},name{gameObject.name},parent{gameObject.parent}, children{gameObject.children},transform{gameObject.transform}
     {
 
     }
 
     GameObject& operator=(const GameObject&);
 
+    //Add component of type <T>
     template <typename T, typename... args>
     T *AddComponent(args &&...parameters)
     {
@@ -92,6 +102,7 @@ public:
         return newComponent;
     }
 
+    //Get first component of type <T>, returns nullptr if no such component is found.
     template <typename T>
     T *GetComponent()
     {
@@ -103,6 +114,12 @@ public:
         }
 
         return dynamic_cast<T *>(*result);
+    }
+
+    static GameObject Instantiate(GameObject* prefab)
+    {
+        GameObject gameObject{*prefab};
+        return gameObject;
     }
 
 private:
@@ -119,7 +136,11 @@ private:
         for (auto component : components)
         {
             component->Update();
-        };
+        }
+        for(auto child : children)
+        {
+            child->Update();
+        }
     }
     size_t id;
     

@@ -2,9 +2,9 @@
 #define GAME_H
 
 
-class Player;
 class Camera;
 class GameObject;
+class Faction;
 
 #include <SFML/Graphics.hpp>
 #include "Time.h"
@@ -30,8 +30,8 @@ class Game
     static Map map;
     static Time time;
     static std::vector<GameObject*> gameObjects;
+    static std::vector<Faction*> factions;
 
-    Player* player;
     Camera* camera;
     std::vector<GameObject*> selected;
     
@@ -43,6 +43,7 @@ class Game
     void Update();
     void CreateMap();
     void GenerateObsticles();
+    void GenerateFactions();
     void GenerateEnemies();
     void GeneratePlayer(int, int);
 

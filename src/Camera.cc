@@ -12,19 +12,19 @@ void Camera::CameraMovement()
     //Camera Movement
     if (sf::Mouse::getPosition(Game::Window).x > 0 && sf::Mouse::getPosition(Game::Window).x < 20)
     {
-        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{-1 * panSpeed * static_cast<float>(Game::time.deltaTime), 0} );
+        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{-1 * panSpeed * Game::time.deltaTime, 0} );
     }
     else if (sf::Mouse::getPosition(Game::Window).x > static_cast<int>(Game::Window.getSize().x) - 20 && sf::Mouse::getPosition(Game::Window).x < static_cast<int>(Game::Window.getSize().x))
     {
-        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{1 * panSpeed * static_cast<float>(Game::time.deltaTime), 0});
+        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{1 * panSpeed * Game::time.deltaTime, 0});
     }
     if (sf::Mouse::getPosition(Game::Window).y > 0 && sf::Mouse::getPosition(Game::Window).y < 20)
     {
-        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{0, -1 * panSpeed * static_cast<float>(Game::time.deltaTime)});
+        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{0, -1 * panSpeed * Game::time.deltaTime});
     }
     else if (sf::Mouse::getPosition(Game::Window).y > static_cast<int>(Game::Window.getSize().y) - 20 && sf::Mouse::getPosition(Game::Window).y < static_cast<int>(Game::Window.getSize().y))
     {
-        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{0, 1 * panSpeed * static_cast<float>(Game::time.deltaTime)});
+        viewport.setCenter(viewport.getCenter() + sf::Vector2<float>{0, 1 * panSpeed * Game::time.deltaTime});
     }
 }
 

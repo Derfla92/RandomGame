@@ -9,14 +9,17 @@ class Transform : public Component
 {
     public:
     Transform();
-    Transform(sf::Vector2<double>);
+    Transform(sf::Vector2f);
 
     void Start() override;
     void Update() override;
 
-    sf::Vector2<double> position;
-    sf::Vector2<double> rotation;
-    sf::Vector2<double> size;
+    void MoveTo(sf::Vector2f);
+
+    sf::Vector2f position;
+    sf::Vector2f localPosition;
+    sf::Vector2f rotation;
+    sf::Vector2f size;
     private:
 
 };

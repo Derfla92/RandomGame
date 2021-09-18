@@ -1,5 +1,5 @@
-#ifndef ENEMY_H
-#define ENEMY_H
+#ifndef HUMAN_H
+#define HUMAN_H
 
 
 class Node;
@@ -7,16 +7,17 @@ class Node;
 #include "PathFinding.h"
 #include "Entity.h"
 
-class Enemy : public Entity
+class Human : public Entity
 {
     public:
-    Enemy();
-    Enemy(Node*);
-    Enemy(const Enemy&);
+    Human();
+    Human(Node*);
+    Human(const Human&);
 
-    Enemy& operator=(const Enemy&);
+    Human& operator=(const Human&);
     virtual void Start() override;
     virtual void Update() override;
+
     private:
     
     

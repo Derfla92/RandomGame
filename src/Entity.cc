@@ -7,7 +7,7 @@
 #include "Sprite2D.h"
 
 Entity::Entity()
-    : Component(), node{}, adjacentNodes{}, path{}
+    : Component(),speed{1},name{"John Doe"}, aparel{},faction{}, node{}, adjacentNodes{}, path{}
 {
 }
 
@@ -25,7 +25,7 @@ void Entity::FindDestination()
     Node *destination{nullptr};
 
     GameObject *player{Game::GetGameObject("Player")};
-    sf::Vector2<double> toPlayer{gameObject->GetComponent<Transform>()->position - player->GetComponent<Transform>()->position};
+    sf::Vector2f toPlayer{gameObject->GetComponent<Transform>()->position - player->GetComponent<Transform>()->position};
     double distanceToPlayer{std::sqrt(std::pow(toPlayer.x, 2) + std::pow(toPlayer.y, 2))};
 
     if (distanceToPlayer < 10)
@@ -83,26 +83,27 @@ void Entity::Movement()
 
     if (path.size() > 0)
     {
-        if(Game::map.get_node(path.back()->pos.x,path.back()->pos.y)->isObsticle)
+        /* if(Game::map.get_node(path.back()->pos.x,path.back()->pos.y)->isObsticle)
         {
-            FindDestination();
+            SetDestination(Game::map.get_node(path.front()->pos.x,path.front()->pos.y));
         }
+        //TODO: Fix to find taget or something.
         else if (path.back()->pos != Game::GetGameObject("Player")->GetComponent<Entity>()->node->position)
-        {
-            sf::Vector2<double> movement{path.back()->pos - gameObject->GetComponent<Transform>()->position};
+        { */
+            sf::Vector2f movement{path.back()->pos - gameObject->GetComponent<Transform>()->position};
 
-            double length{std::sqrt(std::pow(movement.x, 2) + std::pow(movement.y, 2))};
+            float length{static_cast<float>(std::sqrt(std::pow(movement.x, 2) + std::pow(movement.y, 2)))};
             //Normalize movementvector
             movement = {movement.x / length, movement.y / length};
             //Check if we reached an acceptable distance to node's middle.
             double stepDistance{std::sqrt(std::pow(movement.x * speed * Time::deltaTime, 2) + std::pow(movement.y * speed * Time::deltaTime, 2))};
-            sf::Vector2<double> playerVector{path.back()->pos - gameObject->GetComponent<Transform>()->position};
+            sf::Vector2f playerVector{path.back()->pos - gameObject->GetComponent<Transform>()->position};
             double distancePlayerToNode{std::sqrt(std::pow(playerVector.x, 2) + std::pow(playerVector.y, 2))};
             if (distancePlayerToNode > stepDistance)
             {
                 //Apply movement
                 gameObject->GetComponent<Sprite2D>()->GetSprite()->move(movement.x * speed * Time::deltaTime, movement.y * speed * Time::deltaTime);
-                gameObject->GetComponent<Transform>()->position += sf::Vector2<double>{(movement.x * speed * Time::deltaTime), (movement.y * speed * Time::deltaTime)};
+                gameObject->GetComponent<Transform>()->MoveTo(sf::Vector2f{(movement.x * speed * Time::deltaTime), (movement.y * speed * Time::deltaTime)});
             }
             else
             {
@@ -114,7 +115,7 @@ void Entity::Movement()
                 node->marker->setFillColor(sf::Color().Yellow);
                 path.pop_back();
             }
-        }
+        //}
     }
 }
 
@@ -134,6 +135,16 @@ void Entity::Attack()
     {
         attackTimer -= sf::seconds(Time::deltaTime);
     }
+}
+
+Node* Entity::GetNode()
+{
+    return node;
+}
+
+void Entity::SetNode(Node* m_node)
+{
+    node = m_node;
 }
 
 void Entity::SetAdjacentNodes()
