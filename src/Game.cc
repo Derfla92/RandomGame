@@ -29,9 +29,9 @@ void Game::Run()
 {
     GenerateObsticles();
     GenerateFactions();
-    GenerateEnemies();
+    //GenerateEnemies();
     GeneratePlayer(10, 10);
-    GeneratePlayer(10, 10);
+    GeneratePlayer(10, 11);
 
     std::cout << "Starting game..." << std::endl;
     for (auto gameObject : gameObjects)
@@ -230,7 +230,7 @@ void Game::GenerateEnemies()
             {
                 std::cout << "Spawning Human at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
                 std::cout << "Creating Gameobject..." << std::endl;
-                GameObject *gameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)};
+                GameObject *gameObject{new GameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)}};
                 gameObject->parent = enemies;
                 gameObject->parent->children.push_back(gameObject);
                 gameObject->GetComponent<Human>()->SetNode(currentNode);
@@ -256,7 +256,8 @@ void Game::GeneratePlayer(int x, int y)
         currentNode = map.get_node(x, y);
     }
     std::cout << "Spawning Player at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
-    GameObject *gameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)};
+    GameObject *gameObject{new GameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)}};
+    std::cout << gameObject->transform << std::endl;
     gameObject->transform->position = currentNode->position;
     Human *human{gameObject->GetComponent<Human>()};
     human->name = NameGenerator::GenerateName();

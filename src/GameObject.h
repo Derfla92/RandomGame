@@ -85,13 +85,8 @@ public:
 
     //Copy Constructor.
     GameObject(const GameObject& gameObject)
-    : id{gameObject.id}, components{gameObject.components},name{gameObject.name},parent{gameObject.parent}, children{gameObject.children},transform{gameObject.transform}
+    : id{}, components{gameObject.components},name{gameObject.name},parent{gameObject.parent}, children{gameObject.children},transform{gameObject.transform}
     {
-        id = gameObject.id;
-        for(auto component : gameObject.components)
-        {
-            AddComponent<typename
-        }
 
     }
 
@@ -121,9 +116,9 @@ public:
         return dynamic_cast<T *>(*result);
     }
 
-    static GameObject* Instantiate(GameObject* prefab)
+    static GameObject Instantiate(GameObject* prefab)
     {
-        GameObject* gameObject{new GameObject{*prefab}};
+        GameObject gameObject{*prefab};
         return gameObject;
     }
 
