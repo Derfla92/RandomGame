@@ -7,7 +7,7 @@
 #include "Sprite2D.h"
 
 Entity::Entity()
-    : Component(),speed{1},name{"John Doe"}, aparel{},faction{}, node{}, adjacentNodes{}, path{}
+    : Component(), speed{1}, name{"John Doe"}, aparel{}, faction{}, node{}, adjacentNodes{}, path{}
 {
 }
 
@@ -24,41 +24,47 @@ void Entity::FindDestination()
     //Find new destination.
     Node *destination{nullptr};
 
-    GameObject *player{Game::GetGameObject("Player")};
-    sf::Vector2f toPlayer{gameObject->GetComponent<Transform>()->position - player->GetComponent<Transform>()->position};
-    double distanceToPlayer{std::sqrt(std::pow(toPlayer.x, 2) + std::pow(toPlayer.y, 2))};
-
-    if (distanceToPlayer < 10)
+    std::vector<Entity *> playerFaction{Game::GetPlayerFaction()};
+    double distanceToPlayer{};
+    if (playerFaction.size() > 0)
     {
-        std::vector<Node *> adjacentNodes{player->GetComponent<Entity>()->GetAdjacentNodes()};
-        for (auto node : adjacentNodes)
+        for (auto unit : playerFaction)
         {
-            if (!node->isObsticle)
+            sf::Vector2f toPlayer{gameObject->GetComponent<Transform>()->position - unit->gameObject->GetComponent<Transform>()->position};
+            double distanceToPlayer = std::sqrt(std::pow(toPlayer.x, 2) + std::pow(toPlayer.y, 2));
+            if (distanceToPlayer < 10)
             {
-                destination = player->GetComponent<Entity>()->node;
-                destination->isObsticle = false;
-                SetDestination(destination);
-                destination->isObsticle = true;
-                return;
-            }
-        }
-    }
-    else if (path.size() == 0)
-    {
-
-        while (destination == nullptr)
-        {
-            int rX{std::rand() % 11 + (-5)};
-            int rY{std::rand() % 11 + (-5)};
-            if (node->position.x + rX > 0 && node->position.x + rX < Game::map.mapsize.width)
-            {
-                if (node->position.y + rY > 0 && node->position.y + rY < Game::map.mapsize.height)
+                std::vector<Node *> adjacentNodes{unit->GetAdjacentNodes()};
+                for (auto node : adjacentNodes)
                 {
-                    destination = Game::map.get_node(node->position.x + rX, node->position.y + rY);
+                    if (!node->isObsticle)
+                    {
+                        destination = unit->node;
+                        destination->isObsticle = false;
+                        SetDestination(destination);
+                        destination->isObsticle = true;
+                        return;
+                    }
                 }
             }
+            else if (path.size() == 0)
+            {
+
+                while (destination == nullptr)
+                {
+                    int rX{std::rand() % 11 + (-5)};
+                    int rY{std::rand() % 11 + (-5)};
+                    if (node->position.x + rX > 0 && node->position.x + rX < Game::map.mapsize.width)
+                    {
+                        if (node->position.y + rY > 0 && node->position.y + rY < Game::map.mapsize.height)
+                        {
+                            destination = Game::map.get_node(node->position.x + rX, node->position.y + rY);
+                        }
+                    }
+                }
+                SetDestination(destination);
+            }
         }
-        SetDestination(destination);
     }
 }
 
@@ -90,59 +96,59 @@ void Entity::Movement()
         //TODO: Fix to find taget or something.
         else if (path.back()->pos != Game::GetGameObject("Player")->GetComponent<Entity>()->node->position)
         { */
-            sf::Vector2f movement{path.back()->pos - gameObject->GetComponent<Transform>()->position};
+        sf::Vector2f movement{path.back()->pos - gameObject->GetComponent<Transform>()->position};
 
-            float length{static_cast<float>(std::sqrt(std::pow(movement.x, 2) + std::pow(movement.y, 2)))};
-            //Normalize movementvector
-            movement = {movement.x / length, movement.y / length};
-            //Check if we reached an acceptable distance to node's middle.
-            double stepDistance{std::sqrt(std::pow(movement.x * speed * Time::deltaTime, 2) + std::pow(movement.y * speed * Time::deltaTime, 2))};
-            sf::Vector2f playerVector{path.back()->pos - gameObject->GetComponent<Transform>()->position};
-            double distancePlayerToNode{std::sqrt(std::pow(playerVector.x, 2) + std::pow(playerVector.y, 2))};
-            if (distancePlayerToNode > stepDistance)
-            {
-                //Apply movement
-                gameObject->GetComponent<Sprite2D>()->GetSprite()->move(movement.x * speed * Time::deltaTime, movement.y * speed * Time::deltaTime);
-                gameObject->GetComponent<Transform>()->MoveTo(sf::Vector2f{(movement.x * speed * Time::deltaTime), (movement.y * speed * Time::deltaTime)});
-            }
-            else
-            {
-                node->isObsticle = false;
-                node = Game::map.get_node(path.back()->pos.x, path.back()->pos.y);
-                node->isObsticle = true;
-                //Grab new adjacent nodes and color them.
-                SetAdjacentNodes();
-                node->marker->setFillColor(sf::Color().Yellow);
-                path.pop_back();
-            }
+        float length{static_cast<float>(std::sqrt(std::pow(movement.x, 2) + std::pow(movement.y, 2)))};
+        //Normalize movementvector
+        movement = {movement.x / length, movement.y / length};
+        //Check if we reached an acceptable distance to node's middle.
+        double stepDistance{std::sqrt(std::pow(movement.x * speed * Time::deltaTime, 2) + std::pow(movement.y * speed * Time::deltaTime, 2))};
+        sf::Vector2f playerVector{path.back()->pos - gameObject->GetComponent<Transform>()->position};
+        double distancePlayerToNode{std::sqrt(std::pow(playerVector.x, 2) + std::pow(playerVector.y, 2))};
+        if (distancePlayerToNode > stepDistance)
+        {
+            //Apply movement
+            gameObject->GetComponent<Sprite2D>()->GetSprite()->move(movement.x * speed * Time::deltaTime, movement.y * speed * Time::deltaTime);
+            gameObject->GetComponent<Transform>()->MoveTo(sf::Vector2f{(movement.x * speed * Time::deltaTime), (movement.y * speed * Time::deltaTime)});
+        }
+        else
+        {
+            node->isObsticle = false;
+            node = Game::map.get_node(path.back()->pos.x, path.back()->pos.y);
+            node->isObsticle = true;
+            //Grab new adjacent nodes and color them.
+            SetAdjacentNodes();
+            node->marker->setFillColor(sf::Color().Yellow);
+            path.pop_back();
+        }
         //}
     }
 }
 
 void Entity::Attack()
 {
-    GameObject* player{Game::GetGameObject("Player")};
-    for(auto node : adjacentNodes)
+    GameObject *player{Game::GetGameObject("Player")};
+    for (auto node : adjacentNodes)
     {
-        if(player->GetComponent<Entity>()->node == node && attackTimer <= sf::seconds(0))
+        if (player->GetComponent<Entity>()->node == node && attackTimer <= sf::seconds(0))
         {
             std::cout << gameObject->name << " is attacking Player!" << std::endl;
             attackTimer = attackSpeed;
             return;
         }
     }
-    if(attackTimer > sf::seconds(0))
+    if (attackTimer > sf::seconds(0))
     {
         attackTimer -= sf::seconds(Time::deltaTime);
     }
 }
 
-Node* Entity::GetNode()
+Node *Entity::GetNode()
 {
     return node;
 }
 
-void Entity::SetNode(Node* m_node)
+void Entity::SetNode(Node *m_node)
 {
     node = m_node;
 }

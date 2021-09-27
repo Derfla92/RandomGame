@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "Sprite2D.h"
+#include "Faction.h"
 
 Human::Human()
     : Entity()
@@ -20,7 +21,8 @@ void Human::Start()
 
 void Human::Update()
 {
-    //FindDestination();
+    if(!this->faction->isPlayerFaction)
+        FindDestination();
     Movement();
     //Attack();
 }

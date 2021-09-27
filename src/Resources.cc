@@ -9,11 +9,12 @@
 
 namespace fs = std::filesystem;
 
+
+std::unordered_map<std::string,sf::Texture*> Resources::textures{};
+
 Resources::Resources()
-    : textures{}, prefabs{}
 {
     LoadTextures();
-    LoadHumanPrefab();
 }
 
 void Resources::LoadTextures()
@@ -35,7 +36,7 @@ void Resources::LoadTextures()
     }
 }
 
-void Resources::LoadHumanPrefab()
+/* void Resources::LoadHumanPrefab()
 {
     std::cout << "Loading Human Prefab..." << std::endl;
     std::cout << "Creating GameObject..." << std::endl;
@@ -52,4 +53,4 @@ void Resources::LoadHumanPrefab()
     prefabs.insert({"Human",gameObject});
 
     std::cout << "Finished loading Human Prefab!" << std::endl;
-}
+} */

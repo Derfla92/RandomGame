@@ -29,7 +29,7 @@ void Game::Run()
 {
     GenerateObsticles();
     GenerateFactions();
-    //GenerateEnemies();
+    GenerateEnemies();
     GeneratePlayer(10, 10);
     GeneratePlayer(10, 11);
 
@@ -229,13 +229,17 @@ void Game::GenerateEnemies()
             if (std::rand() % 1000 + 1 < 10)
             {
                 std::cout << "Spawning Human at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
-                std::cout << "Creating Gameobject..." << std::endl;
-                GameObject *gameObject{new GameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)}};
-                gameObject->parent = enemies;
-                gameObject->parent->children.push_back(gameObject);
-                gameObject->GetComponent<Human>()->SetNode(currentNode);
-                gameObject->GetComponent<Human>()->faction = factions.at(1);
+                GameObject *gameObject{new GameObject{currentNode->position}};
+                std::cout << "blabla1" << std::endl;
+                Human *human{gameObject->AddComponent<Human>()};
+                human->name = NameGenerator::GenerateName();
+                human->SetNode(currentNode);
+                human->faction = factions.at(1);
+                human->faction->members.push_back(human);
+                std::cout << "blabla2" << std::endl;
+                gameObject->AddComponent<Sprite2D>((*Resources::textures.find("Human")).second);
 
+                enemies->children.push_back(gameObject);
                 std::cout << "Successfully created human!" << std::endl;
             }
         }
@@ -256,14 +260,16 @@ void Game::GeneratePlayer(int x, int y)
         currentNode = map.get_node(x, y);
     }
     std::cout << "Spawning Player at (" << currentNode->position.x << ", " << currentNode->position.y << ")" << std::endl;
-    GameObject *gameObject{new GameObject{GameObject::Instantiate((*resources.prefabs.find("Human")).second)}};
-    std::cout << gameObject->transform << std::endl;
-    gameObject->transform->position = currentNode->position;
-    Human *human{gameObject->GetComponent<Human>()};
+    GameObject *gameObject{new GameObject{currentNode->position}};
+    std::cout << "blabla1" << std::endl;
+    Human *human{gameObject->AddComponent<Human>()};
     human->name = NameGenerator::GenerateName();
     human->SetNode(currentNode);
     human->faction = factions.at(0);
     human->faction->members.push_back(human);
+    std::cout << "blabla2" << std::endl;
+    gameObject->AddComponent<Sprite2D>((*Resources::textures.find("Human")).second);
+
     //Adding Clothes
     GameObject *objectShirt{new GameObject{"Shirt", currentNode->position}};
     objectShirt->parent = gameObject;
@@ -330,7 +336,7 @@ void Game::Update()
         }
         for (auto child : gameObject->children)
         {
-            Sprite2D* sprite{child->GetComponent<Sprite2D>()};
+            Sprite2D *sprite{child->GetComponent<Sprite2D>()};
             if (sprite != nullptr)
             {
                 sf::Sprite sp{*sprite->GetSprite()};
@@ -422,4 +428,12 @@ GameObject *Game::GetGameObject(std::string name)
         return nullptr;
     }
     return *result;
+}
+
+std::vector<Entity*> Game::GetPlayerFaction()
+{
+    auto result = std::find_if(Game::factions.begin(), Game::factions.end(), [](Faction *faction)
+                               { return faction->isPlayerFaction; });
+
+    return (*result)->members;
 }

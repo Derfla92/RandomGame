@@ -12,8 +12,8 @@ class Resources
     public:
     Resources();
 
-    std::unordered_map<std::string,sf::Texture*> textures;
-    std::unordered_map<std::string,GameObject*> prefabs;
+    static std::unordered_map<std::string,sf::Texture*> textures;
+
     
     private:
     void LoadTextures();

@@ -5,6 +5,7 @@
 class Camera;
 class GameObject;
 class Faction;
+class Entity;
 
 #include <SFML/Graphics.hpp>
 #include "Time.h"
@@ -24,6 +25,7 @@ class Game
     void Run();
 
     static GameObject* GetGameObject(std::string);
+    static std::vector<Entity*> GetPlayerFaction();
 
 
     static Resources resources;
